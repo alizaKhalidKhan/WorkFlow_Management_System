@@ -1,0 +1,309 @@
+class Task:
+    def __init__(self, name, deadline,priority):
+        
+        """
+        Represents a task with its name, priority, and deadline.
+
+        Args:
+            name (str): The name of the task.
+            priority (int): The priority of the task.
+            deadline (str): The deadline of the task.
+        """
+            
+        self.name = name
+        self.deadline = deadline
+        self.priority = priority
+        
+class PriorityQueue:
+    def __init__(self):
+        
+        """
+        Represents a priority queue.
+
+        Attributes:
+            heap (list): The list to store the tasks.
+            size (int): The size of the priority queue.
+        """
+            
+        self.heap = []
+        self.size = 0
+
+    def insert(self, task):                              # Complexity : O(log n)
+        
+        """
+        Inserts a task into the priority queue.
+
+        Args:
+            task (Task): The task to be inserted.
+        """
+        
+        self.heap.append(task)                           #O(1)
+        self.size += 1                                   #O(1)
+        self.heapify_up(self.size - 1)                   #O(log n)
+
+    def extract_min(self):                               # Complexity : O(log n)         
+        
+        """
+        Extracts and returns the task with the highest priority (minimum priority value).
+
+        Returns:
+            Task or None: The task with the highest priority, or None if the priority queue is empty.
+        """
+        
+        if self.size == 0:                                #O(1)
+            return None                   
+        min_task = self.heap[0]                           #O(1)
+        self.heap[0] = self.heap[self.size - 1]           #O(1)
+        self.heap.pop()                                   #O(1)
+        self.size -= 1
+        self.heapify_down(0)                              #O(log n)
+        return min_task
+
+    def heapify_up(self, index):                          # Complexity : O(log n)
+        
+        """
+        Restores the heap property by moving a task up to its correct position.
+
+        Args:
+            index (int): The index of the task to be moved up.
+        """
+        
+        parent = (index - 1) // 2                         #O(1)
+        if parent >= 0 and self.heap[parent].priority > self.heap[index].priority:
+            self.heap[parent], self.heap[index] = self.heap[index], self.heap[parent]
+            self.heapify_up(parent)
+
+    def heapify_down(self, index):                        # Complexity : O(log n)
+        
+        """
+        Restores the heap property by moving a task down to its correct position.
+
+        Args:
+            index (int): The index of the task to be moved down.
+        """
+        
+        left_child = 2 * index + 1                             #O(1)
+        right_child = 2 * index + 2                            #O(1)
+        smallest = index                                       #O(1)
+
+        if left_child < self.size and self.heap[left_child].priority < self.heap[smallest].priority:
+            smallest = left_child
+
+        if right_child < self.size and self.heap[right_child].priority < self.heap[smallest].priority:
+            smallest = right_child
+
+        if smallest != index:
+            self.heap[index], self.heap[smallest] = self.heap[smallest], self.heap[index]
+            self.heapify_down(smallest)
+
+class WorkflowManager:
+    
+    """
+    
+    Workflow Manager class handles the creation, deletion, updating and displaying of tasks.
+    
+    """
+    
+    def __init__(self):
+        
+        """
+        Represents a workflow manager that manages tasks using a priority queue.
+        
+        Attributes:
+            tasks (PriorityQueue): The priority queue to store the tasks.
+        """
+        
+        self.tasks = PriorityQueue()
+
+    def add_task(self, name, deadline, priority):            # Complexity : O(log n)
+        
+        """
+        Adds a task to the workflow manager.
+        
+        Args:
+            name (str): The name of the task.
+            deadline (str): The deadline of the task.
+            priority (int): The priority of the task.
+        """
+        
+        task = Task(name, deadline, priority)                 #O(1)
+        self.tasks.insert(task)                               #O(log n)
+        print("Task added successfully!")                     #O(1)
+
+    def delete_task(self, name):                              # Complexity : O(n)
+        
+        """
+        Deletes a task from the workflow manager.
+        
+        Args:
+            name (str): The name of the task to be deleted.
+        """
+        
+        for i in range(self.tasks.size):                       #O(n)
+            if self.tasks.heap[i].name == name:
+                self.tasks.heap.pop(i)
+                self.tasks.size -= 1
+                print("Task deleted successfully!")
+                return
+        print("Task not found!")
+
+    def search_task(self, name):                                # Complexity : O(n)
+        
+        """
+        Searches for a task in the workflow manager.
+
+        Args:
+            name (str): The name of the task.
+
+        Returns:
+            Task or None: The found task, or None if the task is not found.
+        """
+        
+        for task in self.tasks.heap:                           #O(n)   
+            if task.name == name:
+                return task
+        return None
+
+    def update_task(self, name):                                # Complexity : O(n)
+        
+        """
+        Updates a task in the workflow manager.
+
+        Args:
+            name (str): The name of the task.
+        """
+        
+        for task in self.tasks.heap:
+            if task.name == name:
+                task.name = input("Enter the updated name: ")
+                task.deadline = input("Enter the updated deadline: ")
+                task.priority = int(input("Enter the updated priority: "))
+                self.tasks.heapify_down(self.tasks.heap.index(task))
+                print("Task updated successfully!")
+                return
+        print("Task not found!")
+
+    def display_tasks(self):                                         # Complexity : O(n log n)
+        
+        """
+        
+        Displays all the tasks in the workflow manager, sorted by priority.
+        
+        """
+        
+        if self.tasks.size == 0:
+            print("No tasks found!")
+            return
+
+        # Create a copy of the heap
+        sorted_heap = self.tasks.heap.copy()                        #O(n)
+
+        # Perform Heap Sort                                         #O(log n)
+        n = len(sorted_heap)
+        for i in range(n // 2 - 1, -1, -1):
+            self.heapify_down(sorted_heap, n, i)
+
+        sorted_tasks = []
+        for i in range(n - 1, -1, -1):
+            sorted_tasks.append(sorted_heap[0])
+            sorted_heap[0], sorted_heap[i] = sorted_heap[i], sorted_heap[0]
+            self.heapify_down(sorted_heap, i, 0)
+
+        print("Tasks (sorted by priority):")
+        print()
+        for task in sorted_tasks:                                  #O(n)
+            print("Name:", task.name)
+            print("Priority:", task.priority)
+            print("Deadline:", task.deadline)
+            print("---------------------------")
+
+    def heapify_down(self, heap, size, index):                    # Complexity : O(log n)
+        
+        """
+        Restores the heap property by moving a task down to its correct position.
+
+        Args:
+            heap (list): The heap to be heapified.
+            size (int): The size of the heap.
+            index (int): The index of the task to be moved down.
+        """
+        
+        left_child = 2 * index + 1
+        right_child = 2 * index + 2
+        smallest = index
+        
+        
+        # Check if the left child is smaller than the current smallest
+        if left_child < size and heap[left_child].priority < heap[smallest].priority:
+            smallest = left_child
+            
+        # Check if the right child is smaller than the current smallest
+        if right_child < size and heap[right_child].priority < heap[smallest].priority:
+            smallest = right_child
+
+        if smallest != index:
+            
+            # Swap the task at index with the smallest child
+            heap[index], heap[smallest] = heap[smallest], heap[index]
+            # Recursively call heapify_down on the smallest child
+            self.heapify_down(heap, size, smallest)
+
+            
+def print_menu():
+    print()
+    print("Workflow Management Menu")
+    print("1. Add Task")
+    print("2. Delete Task")
+    print("3. Search Task")
+    print("4. Update Task")
+    print("5. Display Tasks")
+    print("6. Quit")
+    print()
+
+# Create an object of the WorkflowManager class
+workflow = WorkflowManager()
+while True:
+    print_menu()
+    choice = input("Enter your choice (1-6): ")
+
+    if choice == "1":
+        print("Enter the task details:")
+        name = input("Task Name: ")
+        deadline = input("Task Deadline: ")
+        priority = int(input("Task Priority: "))
+        workflow.add_task(name, deadline, priority)
+        print()
+
+    elif choice == "2":
+        name = input("Enter the name of the task to delete: ")
+        workflow.delete_task(name)
+        print()
+
+    elif choice == "3":
+        name = input("Enter the name of the task to search: ")
+        task = workflow.search_task(name)
+        if task:
+            print("Task found:")
+            print("Name:", task.name)
+            print("Priority:", task.priority)
+            print("Deadline:", task.deadline)
+        else:
+            print("Task not found!")
+        print()
+
+    elif choice == "4":
+        name = input("Enter the name of the task to update: ")
+        workflow.update_task(name)
+        print()
+
+    elif choice == "5":
+        workflow.display_tasks()
+        print()
+
+    elif choice == "6":
+        print("Exiting Workflow Management System.")
+        print()
+        break
+
+    else:
+        print("Invalid choice. Please enter a number from 1 to 6.")
